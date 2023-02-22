@@ -27,7 +27,3 @@ resource "aws_s3_bucket" "api_uploads" {
     }
   )
 }
-
-resource "aws_s3_bucket" "api_credentials" {
-  bucket = "${local.app_name}-api-${terraform.workspace}-credentials"
-}
