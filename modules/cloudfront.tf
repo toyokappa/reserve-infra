@@ -35,6 +35,33 @@ resource "aws_cloudfront_distribution" "front" {
     max_ttl                = 0
   }
 
+  ordered_cache_behavior {
+    path_pattern     = "/admin/*"
+    allowed_methods  = ["HEAD", "GET", "OPTIONS"]
+    cached_methods   = ["HEAD", "GET", "OPTIONS"]
+    target_origin_id = aws_s3_bucket.front.id
+    compress         = true
+
+    forwarded_values {
+      query_string = true
+      headers      = ["Origin"]
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 0
+    max_ttl                = 0
+
+    lambda_function_association {
+      event_type   = "viewer-request"
+      lambda_arn   = local.basic_auth_lambda_arn
+      include_body = false
+    }
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
