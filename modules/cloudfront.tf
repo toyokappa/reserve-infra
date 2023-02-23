@@ -36,7 +36,7 @@ resource "aws_cloudfront_distribution" "front" {
   }
 
   ordered_cache_behavior {
-    path_pattern     = "/admin/*"
+    path_pattern     = "/admin*"
     allowed_methods  = ["HEAD", "GET", "OPTIONS"]
     cached_methods   = ["HEAD", "GET", "OPTIONS"]
     target_origin_id = aws_s3_bucket.front.id
@@ -57,7 +57,7 @@ resource "aws_cloudfront_distribution" "front" {
 
     lambda_function_association {
       event_type   = "viewer-request"
-      lambda_arn   = local.basic_auth_lambda_arn
+      lambda_arn   = aws_lambda_function.admin_basic_auth.qualified_arn
       include_body = false
     }
   }

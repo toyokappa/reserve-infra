@@ -30,10 +30,14 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   role       = aws_iam_role.ecs_execution.id
 }
 
-resource "aws_iam_role_policy" "ssm_get_policy" {
+resource "aws_iam_policy" "ssm_get_policy" {
   name   = "${local.app_name}-${terraform.workspace}-ssm-get-policy"
-  role   = aws_iam_role.ecs_execution.name
   policy = templatefile("policies/ssm_get_policy.tmpl", { aws_account_id = local.aws_account_id })
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_get_for_ecs_execution" {
+  policy_arn = aws_iam_policy.ssm_get_policy.arn
+  role       = aws_iam_role.ecs_execution.name
 }
 
 # ECS Task用ロール
@@ -46,4 +50,19 @@ resource "aws_iam_role_policy" "ecs_task_policy" {
   name   = "${local.app_name}-api-${terraform.workspace}-ecs-task-policy"
   role   = aws_iam_role.ecs_task_role.name
   policy = file("policies/ecs_task_policy.json")
+}
+
+resource "aws_iam_role" "lambda_edge" {
+  name               = "${local.app_name}-lambda-edge-role"
+  assume_role_policy = file("policies/lambda_edge_assume_role_policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  role       = aws_iam_role.lambda_edge.name
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_get_for_lambda" {
+  policy_arn = aws_iam_policy.ssm_get_policy.arn
+  role       = aws_iam_role.lambda_edge.name
 }
